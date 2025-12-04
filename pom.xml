@@ -9,11 +9,11 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <!-- Spring Boot Parent -->
+    <!-- Spring Boot Parent (JAKARTA Compatible) -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.5.4</version>
+        <version>3.2.4</version>
     </parent>
 
     <properties>
@@ -22,7 +22,7 @@
 
     <dependencies>
 
-        <!-- Spring MVC -->
+        <!-- Spring MVC (Jakarta Version) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -34,22 +34,22 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
-        <!-- Tomcat for WAR deployment -->
+        <!-- Tomcat 10 for WAR deployment -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
         </dependency>
 
-        <!-- Servlet API (Tomcat 9 uses javax.servlet) -->
+        <!-- Jakarta Servlet API (Required for Tomcat 10) -->
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>4.0.1</version>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- Test -->
+        <!-- Test dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -61,7 +61,7 @@
     <build>
         <plugins>
 
-            <!-- Maven Compiler -->
+            <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -72,17 +72,20 @@
                 </configuration>
             </plugin>
 
-            <!-- Spring Boot Packaging (WAR) -->
+            <!-- Spring Boot WAR Packaging -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <packaging>war</packaging>
+                </configuration>
             </plugin>
 
             <!-- WAR Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.3.2</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
