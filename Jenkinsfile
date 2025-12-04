@@ -63,7 +63,8 @@ pipeline {
                 sudo rm -rf \$TOMCAT_DIR/webapps/bus-booking-app*
 
                 echo "Deploying new WAR..."
-                sudo cp target/bus-booking-app-1.0-SNAPSHOT.war \$TOMCAT_DIR/webapps/
+                sudo cp target/bus-booking-app-1.0-SNAPSHOT.war $TOMCAT_DIR/webapps/bus_booking.war
+
 
                 echo "Starting Tomcat..."
                 sudo \$TOMCAT_DIR/bin/startup.sh
