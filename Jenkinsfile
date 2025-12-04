@@ -47,7 +47,7 @@ pipeline {
 
         stage('Build WAR') {
     steps {
-        withEnv(["JAVA_HOME=${tool 'JDK17'}", "PATH=${tool 'JDK17'}/bin:${env.PATH}"]) {
+        withEnv(["JAVA_HOME=${tool 'jdk17'}", "PATH=${tool 'jdk17'}/bin:${env.PATH}"]) {
             sh 'mvn clean package -DskipTests'
         }
     }
