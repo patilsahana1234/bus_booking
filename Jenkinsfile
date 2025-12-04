@@ -2,13 +2,15 @@ pipeline {
     agent any
 
     environment {
-        JAVA_HOME = tool name: 'JDK17', type: 'jdk'
-        PATH = "${JAVA_HOME}/bin:${env.PATH}"
-        APP_DIR = "/opt/bus_booking/bus_booking"   // points to repo root
-        TOMCAT_DIR = "/opt/tomcat10"
-        WAR_NAME = "bus-booking-app.war"
-        APP_PORT = "8081"
-    }
+    JAVA_HOME = tool(name: 'JDK17', type: 'jdk')
+    PATH = "${JAVA_HOME}/bin:${env.PATH}"
+
+    APP_DIR = "/opt/bus_booking/bus_booking"
+    TOMCAT_DIR = "/opt/tomcat10"
+
+    WAR_NAME = "bus-booking-app-1.0-SNAPSHOT.war"
+    APP_PORT = "8081"
+}
 
     stages {
 
