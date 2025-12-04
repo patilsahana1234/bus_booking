@@ -12,7 +12,11 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-repo/bus_booking.git'
+                git(
+                    url: 'https://github.com/your-repo/bus_booking.git',
+                    branch: 'main',
+                    credentialsId: 'github-bus_booking-token' // Use your Jenkins credentials ID here
+                )
             }
         }
 
@@ -54,7 +58,12 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 echo 'Verifying deployment...'
-                sh "curl -I http://localhost:8080/bus_booking || true"
+                sh """
+                    for i in {1..10}; do
+                        curl -I http://localhost:8080/bus_booking && break
+                        sleep 3
+                    done
+                """
             }
         }
     }
