@@ -46,10 +46,12 @@ pipeline {
         }
 
         stage('Build WAR') {
-            steps {
-                sh 'mvn clean package -DskipTests'
-            }
+    steps {
+        withEnv(["JAVA_HOME=${tool 'JDK17'}", "PATH=${tool 'JDK17'}/bin:${env.PATH}"]) {
+            sh 'mvn clean package -DskipTests'
         }
+    }
+}
 
         stage('Install Tomcat (if Not Exists)') {
             steps {
