@@ -32,25 +32,22 @@ pipeline {
         }
 
         stage('Checkout Code') {
-            steps {
-                sh '''
-                cd $BASE_DIR
+    steps {
+        sh '''
+        cd $BASE_DIR
 
-                echo "=== Cleaning old folders ==="
-                rm -rf bus_booking
+        echo "=== Cleaning old folders ==="
+        rm -rf bus_booking
 
-                echo "=== Cloning latest code ==="
-                git clone https://github.com/patilsahana1234/bus_booking.git
+        echo "=== Cloning latest code ==="
+        git clone https://github.com/patilsahana1234/bus_booking.git
 
-                echo "=== Verifying Maven project directory ==="
-                ls -l $APP_DIR
-               
-                echo "=== Full directory structure ==="
-                ls -R /opt/bus_booking/bus_booking
- '''
+        echo "=== FULL DIRECTORY STRUCTURE ==="
+        ls -R /opt/bus_booking/bus_booking
+        '''
+    }
+}
 
-            }
-        }
 
         stage('Create build_deploy.sh') {
             steps {
