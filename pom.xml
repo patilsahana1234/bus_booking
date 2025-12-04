@@ -1,15 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Group and Artifact Information -->
     <groupId>com.example</groupId>
     <artifactId>bus-booking-app</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <!-- Parent for Spring Boot -->
+    <!-- Spring Boot Parent -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -17,20 +17,21 @@
         <relativePath/>
     </parent>
 
-    <!-- Properties -->
+    <!-- Java Version -->
     <properties>
         <java.version>17</java.version>
     </properties>
 
     <!-- Dependencies -->
     <dependencies>
-        <!-- Spring Boot Starter Web for building web applications -->
+
+        <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Thymeleaf for template rendering -->
+        <!-- Thymeleaf -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -44,45 +45,41 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Spring Boot Starter Test for unit and integration tests -->
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
-    <!-- Build Section -->
+    <!-- Build Plugins -->
     <build>
         <plugins>
-            <!-- Maven Compiler Plugin for compiling the Java sources -->
+
+            <!-- Compiler Plugin (Updated for Java 17) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.11.0</version>
                 <configuration>
-                    <release>${java.version}</release>
+                    <source>17</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
 
-            <!-- Spring Boot Maven Plugin for packaging the app -->
+            <!-- Spring Boot WAR plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>2.5.4</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
                     <packaging>war</packaging>
                 </configuration>
             </plugin>
 
-            <!-- Maven WAR Plugin for building the WAR file -->
+            <!-- WAR plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
@@ -91,12 +88,13 @@
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 
-    <!-- Profiles Section -->
+    <!-- Profiles -->
     <profiles>
-        <!-- Profile for development -->
+
         <profile>
             <id>dev</id>
             <properties>
@@ -104,13 +102,13 @@
             </properties>
         </profile>
 
-        <!-- Profile for production -->
         <profile>
             <id>prod</id>
             <properties>
                 <spring.profiles.active>prod</spring.profiles.active>
             </properties>
         </profile>
+
     </profiles>
 
 </project>
