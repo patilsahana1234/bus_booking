@@ -4,7 +4,7 @@ pipeline {
         JAVA_HOME = tool name: 'jdk17', type: 'jdk'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
         TOMCAT_DIR = "/opt/apache-tomcat-10.1.49"
-        TOMCAT_VERSION = "10.1.30"
+        TOMCAT_VERSION = "10.1.49"
       
     }
 
@@ -54,7 +54,7 @@ pipeline {
         stage('Deploy WAR to Tomcat') {
             steps {
                 sh '''
-                if [ -d "/opt/tomcat10/webapps" ]; then
+                if [ -d "/opt/apache-tomcat-10.1.49/webapps" ]; then
                     echo "Error: Tomcat webapps directory does not exist!"
                     exit 1
                 fi
