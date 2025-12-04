@@ -47,25 +47,35 @@ pipeline {
         }
 
         stage('Deploy WAR to Tomcat') {
-            steps {
-                sh '''
-                echo "Stopping Tomcat..."
-                sudo $TOMCAT_DIR/bin/shutdown.sh || true
+    steps {
+        script {
+            def warFile = "target/${env.WAR_NAME}"
 
-                echo "Cleaning old deployment..."
-                sudo rm -rf $TOMCAT_DIR/webapps/$CONTEXT_NAME*
-
-                echo "Deploying WAR to context: $CONTEXT_NAME..."
-                sudo cp target/$WAR_NAME $TOMCAT_DIR/webapps/$CONTEXT_NAME.war
-
-                echo "Starting Tomcat..."
-                sudo $TOMCAT_DIR/bin/startup.sh
-
-                # Wait 10 seconds for Tomcat to start
-                sleep 10
-                '''
+            // Check if WAR file exists
+            if (!fileExists(warFile)) {
+                error "WAR file not found: ${warFile}. Build may have failed or WAR name is incorrect."
             }
+
+            sh """
+            echo "Stopping Tomcat..."
+            sudo $TOMCAT_DIR/bin/shutdown.sh || true
+
+            echo "Cleaning old deployment..."
+            sudo rm -rf $TOMCAT_DIR/webapps/$CONTEXT_NAME*
+
+            echo "Deploying WAR to context: $CONTEXT_NAME..."
+            sudo cp $warFile $TOMCAT_DIR/webapps/$CONTEXT_NAME.war
+
+            echo "Starting Tomcat..."
+            sudo $TOMCAT_DIR/bin/startup.sh
+
+            # Wait for Tomcat to start
+            sleep 10
+            """
         }
+    }
+}
+
 
         stage('Verify Deployment') {
             steps {
