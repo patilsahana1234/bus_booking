@@ -44,7 +44,11 @@ pipeline {
 
                 echo "=== Verifying Maven project directory ==="
                 ls -l $APP_DIR
-                '''
+               
+                echo "=== Full directory structure ==="
+                ls -R /opt/bus_booking/bus_booking
+ '''
+
             }
         }
 
