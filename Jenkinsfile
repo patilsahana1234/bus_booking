@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     tools {
-        jdk 'JDK17'
-        maven 'Maven3'
-    }
+    jdk 'jdk17'
+    maven 'maven3'
+}
 
     environment {
         TOMCAT_HOME   = "/opt/tomcat10"
