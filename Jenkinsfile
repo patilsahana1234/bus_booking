@@ -3,7 +3,7 @@ pipeline {
     environment {
         JAVA_HOME = tool name: 'jdk17', type: 'jdk'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
-        TOMCAT_DIR = "/opt/tomcat10"
+        TOMCAT_DIR = "/opt/apache-tomcat-10.1.49"
         TOMCAT_VERSION = "10.1.30"
       
     }
@@ -31,15 +31,15 @@ pipeline {
             steps {
                 sh '''
                 echo "=== Checking Tomcat ==="
-                    if [ -d "/opt/tomcat10" ]; then
+                    if [ -d "/opt/apache-tomcat-10.1.49" ]; then
                         echo "Tomcat already installed in /opt/tomcat10"
                     else
                         echo "Installing Tomcat 10..."
                         cd /opt
-                        sudo wget https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.30/bin/apache-tomcat-10.1.30.tar.gz
-                        sudo tar -xzf apache-tomcat-10.1.30.tar.gz
-                        sudo mv apache-tomcat-10.1.30 tomcat10
-                        sudo chmod +x /opt/tomcat10/bin/*.sh
+                        sudo wget https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.30/bin/apache-tomcat-10.1.49.tar.gz
+                        sudo tar -xzf apache-tomcat-10.1.49.tar.gz
+                        sudo mv apache-tomcat-10.1.49 tomcat10
+                        sudo chmod +x /opt/apache-tomcat-10.1.49/bin/*.sh
                     fi
                
             }
