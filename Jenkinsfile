@@ -26,12 +26,7 @@ pipeline {
             }
         }
 
-        stage('Build WAR') {
-            steps {
-                sh 'mvn clean package -DskipTests'
-            }
-        }
-
+    
         stage('Install Tomcat (if not exists)') {
             steps {
                 sh '''
@@ -56,6 +51,12 @@ pipeline {
                 '''
             }
         }
+        stage('Build WAR') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
 
         stage('Deploy WAR to Tomcat') {
             steps {
