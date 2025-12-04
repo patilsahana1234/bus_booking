@@ -30,7 +30,7 @@ pipeline {
         stage('Install Tomcat (if not exists)') {
             steps {
                 sh '''
-                if [ ! -d "${TOMCAT_DIR}" ]; then
+                 if [ -d "/opt/tomcat10" ];  then
                     echo "==== Tomcat not found. Installing... ===="
                     sudo mkdir -p ${TOMCAT_DIR}
                     cd /tmp
