@@ -42,46 +42,57 @@ pipeline {
                     git fetch --all
                     git reset --hard origin/main
                 else
-                    git clone https://github.com/patilsahana1234/bus_booking.git bus_booking
+                    git clone https://github.com/patilsahana1234/bus_booking.git
                 fi
                 '''
             }
         }
 
         stage('Detect Maven Project') {
-            steps {
-                sh '''
-                cd $BASE_DIR/bus_booking
-                POM_PATH=$(find . -name "pom.xml" | head -n 1)
-                if [ -z "$POM_PATH" ]; then
-                    echo "Error: pom.xml not found in repo!"
-                    exit 1
-                fi
-                APP_DIR=$(dirname $POM_PATH)
-                echo "Detected Maven project at: $APP_DIR"
-                echo $APP_DIR > detected_app_dir.txt
-                '''
-            }
-        }
+    steps {
+        sh '''
+        set -e  # Exit on any error
+        cd "$BASE_DIR/bus_booking"
 
-        stage('Build WAR') {
-            steps {
-                sh '''
-                APP_DIR=$(cat $BASE_DIR/bus_booking/detected_app_dir.txt)
-                cd $BASE_DIR/bus_booking/$APP_DIR
-                mvn clean package -DskipTests
+        # Find the first pom.xml
+        POM_PATH=$(find . -name "pom.xml" | head -n 1)
+        if [ -z "$POM_PATH" ]; then
+            echo "Error: pom.xml not found in repo!"
+            exit 1
+        fi
 
-                # Copy WAR to consistent location
-                WAR_FILE=$(find target -name "*.war" | head -n 1)
-                if [ -z "$WAR_FILE" ]; then
-                    echo "Error: WAR file not generated!"
-                    exit 1
-                fi
-                cp $WAR_FILE $BASE_DIR/$WAR_NAME
-                echo "WAR built at $BASE_DIR/$WAR_NAME"
-                '''
-            }
-        }
+        APP_DIR=$(dirname "$POM_PATH")
+        echo "Detected Maven project at: $APP_DIR"
+
+        # Save detected directory to file for next stage
+        echo "$APP_DIR" > detected_app_dir.txt
+        '''
+    }
+}
+
+stage('Build WAR') {
+    steps {
+        sh '''
+        set -e
+        APP_DIR=$(cat "$BASE_DIR/bus_booking/detected_app_dir.txt")
+        cd "$BASE_DIR/bus_booking/$APP_DIR"
+
+        echo "Building WAR..."
+        mvn clean package -DskipTests
+
+        # Find the WAR file
+        WAR_FILE=$(find target -name "*.war" | head -n 1)
+        if [ -z "$WAR_FILE" ]; then
+            echo "Error: WAR file not generated!"
+            exit 1
+        fi
+
+        # Copy WAR to consistent location
+        cp "$WAR_FILE" "$BASE_DIR/$WAR_NAME"
+        echo "WAR built at $BASE_DIR/$WAR_NAME"
+        '''
+    }
+}
 
         stage('Stop Tomcat') {
             steps {
