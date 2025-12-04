@@ -33,3 +33,42 @@ pipeline {
 
                     for i in {1..20}; do
                         if curl -s http://localhost:8080 >/dev/null; then
+                            echo "App is running!"
+                            exit 0
+                        fi
+                        echo "Not responding yet... retry $i"
+                        sleep 3
+                    done
+
+                    echo "App FAILED to start!"
+                    tail -n 200 app.log || true
+                    exit 1
+                '''
+            }
+        }
+
+        stage('Wait for 2 minutes') {
+            steps {
+                sleep(time: 2, unit: 'MINUTES')
+            }
+        }
+
+        stage('Stop Application') {
+            steps {
+                sh '''
+                    if [ -f app.pid ]; then
+                        PID=$(cat app.pid)
+                        echo "Stopping app with PID $PID"
+                        kill $PID || true
+                    fi
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Cleaning up..."
+        }
+    }
+}
