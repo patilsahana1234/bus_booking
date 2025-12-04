@@ -35,16 +35,18 @@ pipeline {
                 sh '''
                 cd $BASE_DIR
 
-                # If project exists, update it
-                if [ -d "bus-booking-app" ]; then
-                    cd bus-booking-app
-                    git fetch --all
-                    git reset --hard origin/main
-                else
-                    git clone https://github.com/patilsahana1234/bus_booking.git
-                    mv bus_booking/bus-booking-app $BASE_DIR/
-                    rm -rf bus_booking
-                fi
+                echo "=== Removing old project folders ==="
+                rm -rf bus_booking
+                rm -rf bus-booking-app
+
+                echo "=== Cloning latest code ==="
+                git clone https://github.com/patilsahana1234/bus_booking.git
+
+                echo "=== Moving actual application folder ==="
+                mv bus_booking/bus-booking-app $BASE_DIR/
+
+                echo "=== Cleaning leftover ==="
+                rm -rf bus_booking
                 '''
             }
         }
@@ -54,7 +56,9 @@ pipeline {
                 sh '''
                 cd $APP_DIR
 
-                cat << 'EOF' > build_deploy.sh
+                echo "=== Creating fresh build_deploy.sh ==="
+
+cat << 'EOF' > build_deploy.sh
 #!/bin/bash
 set -e
 
@@ -67,25 +71,26 @@ PORT=8081
 
 mkdir -p "$DEPLOY_DIR"
 
-# Kill existing app
+echo "=== Stopping existing app if running ==="
 PID=$(pgrep -f "$DEPLOY_DIR/$WAR_NAME" || true)
 if [ -n "$PID" ]; then
     pkill -f "$DEPLOY_DIR/$WAR_NAME"
     sleep 5
 fi
 
-# Build WAR
+echo "=== Building Project ==="
 mvn clean package -DskipTests
 
-# Copy WAR
+echo "=== Copying WAR ==="
 WAR_FILE=$(find $TARGET_DIR -name "*.war" | head -n 1)
 cp "$WAR_FILE" "$DEPLOY_DIR/$WAR_NAME"
 
-# Start app
+echo "=== Starting Application on Port $PORT ==="
 nohup java -jar "$DEPLOY_DIR/$WAR_NAME" --server.port=$PORT > "$LOG_FILE" 2>&1 &
 
 sleep 30
 
+echo "=== Checking Health ==="
 if curl -s http://localhost:$PORT/actuator/health | grep -q "UP"; then
     echo "Application running on port $PORT"
 else
