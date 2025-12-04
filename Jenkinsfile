@@ -3,8 +3,8 @@ pipeline {
     environment {
         JAVA_HOME = tool name: 'jdk17', type: 'jdk'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
-        TOMCAT_DIR = "/opt/tomcat10"
-        TOMCAT_VERSION = "10.1.49"
+        TOMCAT_DIR = "/opt/tomcat9"
+        TOMCAT_VERSION = "9.0.112"
     }
     stages {
         stage('Check Java & Maven') {
@@ -29,11 +29,11 @@ pipeline {
                 if [ -d "\$TOMCAT_DIR" ]; then
                     echo "Tomcat already installed in \$TOMCAT_DIR"
                 else
-                    echo "Installing Tomcat 10..."
+                    echo "Installing Tomcat 9..."
                     cd /opt
-                    sudo wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.49/bin/apache-tomcat-10.1.49.tar.gz
-                    sudo tar -xzf apache-tomcat-10.1.49.tar.gz
-                    sudo mv apache-tomcat-10.1.49 tomcat10
+                    sudo wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.112/bin/apache-tomcat-9.0.112.tar.gz
+                    sudo tar -xzf apache-tomcat-9.0.112.tar.gz
+                    sudo mv apache-tomcat-9.0.112 tomcat9
                     sudo chmod +x \$TOMCAT_DIR/bin/*.sh
                 fi
                 """
