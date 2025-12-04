@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         BASE_DIR = "/opt/bus_booking"
-        APP_DIR = "/opt/bus_booking/bus_booking"
+        CLONE_DIR = "/opt/bus_booking/bus_booking"
+        APP_DIR = "/opt/bus_booking/bus_booking/bus-booking-app"   // FIXED
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
         PATH = "${JAVA_HOME}/bin:${env.PATH}:/usr/share/maven/bin"
         APP_PORT = "8081"
@@ -41,12 +42,11 @@ pipeline {
                 echo "=== Cloning latest code ==="
                 git clone https://github.com/patilsahana1234/bus_booking.git
 
-                echo "=== Listing project folder ==="
+                echo "=== Verifying Maven project directory ==="
                 ls -l $APP_DIR
                 '''
             }
         }
-
 
         stage('Create build_deploy.sh') {
             steps {
