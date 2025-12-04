@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         BASE_DIR = "/opt/bus_booking"
-        APP_DIR = "/opt/bus_booking"
+        APP_DIR = "/opt/bus_booking/bus_booking"
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
         PATH = "${JAVA_HOME}/bin:${env.PATH}:/usr/share/maven/bin"
         APP_PORT = "8081"
@@ -36,18 +36,17 @@ pipeline {
                 cd $BASE_DIR
 
                 echo "=== Cleaning old folders ==="
-                rm -rf app
                 rm -rf bus_booking
 
                 echo "=== Cloning latest code ==="
-                git clone https://github.com/patilsahana1234/bus_booking.git 
-                
+                git clone https://github.com/patilsahana1234/bus_booking.git
 
-                echo "=== Code directory = $BASE_DIR/app ==="
-                ls -l $BASE_DIR/app
+                echo "=== Listing project folder ==="
+                ls -l $APP_DIR
                 '''
             }
         }
+
 
         stage('Create build_deploy.sh') {
             steps {
