@@ -40,8 +40,8 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/vivek-co/bus_booking.git'
+                git branch: 'feature-1',
+                    url: 'https://github.com/patilsahana1234/bus_booking.git'
             }
         }
 
