@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        BASE_DIR = "/opt/bus_booking"
         APP_DIR = "/opt/bus_booking/bus-booking-app"
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
         PATH = "${JAVA_HOME}/bin:${env.PATH}:/usr/share/maven/bin"
@@ -14,27 +15,17 @@ pipeline {
         stage('Prepare Environment') {
             steps {
                 sh '''
-                #!/bin/bash
-                # Install Java if missing
+                sudo mkdir -p $BASE_DIR
+                sudo chown -R $USER:$USER $BASE_DIR
+
                 if ! java -version &>/dev/null; then
-                    echo "Installing Java 17..."
                     sudo apt-get update
                     sudo apt-get install -y openjdk-17-jdk
-                else
-                    echo "Java is already installed"
                 fi
 
-                # Install Maven if missing
                 if ! mvn -v &>/dev/null; then
-                    echo "Installing Maven..."
                     sudo apt-get install -y maven
-                else
-                    echo "Maven is already installed"
                 fi
-
-                # Create app directory
-                sudo mkdir -p $APP_DIR
-                sudo chown -R $USER:$USER $APP_DIR
                 '''
             }
         }
@@ -42,26 +33,31 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 sh '''
-                cd $APP_DIR
-                if [ -d ".git" ]; then
+                cd $BASE_DIR
+
+                # If project exists, update it
+                if [ -d "bus-booking-app" ]; then
+                    cd bus-booking-app
                     git fetch --all
                     git reset --hard origin/main
                 else
-                    git clone https://github.com/patilsahana1234/bus_booking.git $APP_DIR
+                    git clone https://github.com/patilsahana1234/bus_booking.git
+                    mv bus_booking/bus-booking-app $BASE_DIR/
+                    rm -rf bus_booking
                 fi
                 '''
             }
         }
 
-        stage('Create build_deploy.sh if Missing') {
+        stage('Create build_deploy.sh') {
             steps {
                 sh '''
                 cd $APP_DIR
-                if [ ! -f build_deploy.sh ]; then
-                    echo "Creating build_deploy.sh..."
-                    cat << 'EOF' > build_deploy.sh
+
+                cat << 'EOF' > build_deploy.sh
 #!/bin/bash
 set -e
+
 APP_DIR="$(pwd)"
 TARGET_DIR="$APP_DIR/target"
 WAR_NAME="bus-booking-app.war"
@@ -70,31 +66,39 @@ LOG_FILE="$DEPLOY_DIR/app.log"
 PORT=8081
 
 mkdir -p "$DEPLOY_DIR"
-PKILL_CMD=$(pgrep -f "$DEPLOY_DIR/$WAR_NAME" || true)
-if [ -n "$PKILL_CMD" ]; then
+
+# Kill existing app
+PID=$(pgrep -f "$DEPLOY_DIR/$WAR_NAME" || true)
+if [ -n "$PID" ]; then
     pkill -f "$DEPLOY_DIR/$WAR_NAME"
     sleep 5
 fi
+
+# Build WAR
 mvn clean package -DskipTests
+
+# Copy WAR
 WAR_FILE=$(find $TARGET_DIR -name "*.war" | head -n 1)
 cp "$WAR_FILE" "$DEPLOY_DIR/$WAR_NAME"
+
+# Start app
 nohup java -jar "$DEPLOY_DIR/$WAR_NAME" --server.port=$PORT > "$LOG_FILE" 2>&1 &
+
 sleep 30
+
 if curl -s http://localhost:$PORT/actuator/health | grep -q "UP"; then
     echo "Application running on port $PORT"
 else
-    echo "Check logs at $LOG_FILE"
+    echo "Startup failed. Check logs at $LOG_FILE"
 fi
 EOF
-                    chmod +x build_deploy.sh
-                else
-                    echo "build_deploy.sh already exists"
-                fi
+
+                chmod +x build_deploy.sh
                 '''
             }
         }
 
-        stage('Build and Deploy Application') {
+        stage('Build and Deploy') {
             steps {
                 sh '''
                 cd $APP_DIR
