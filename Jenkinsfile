@@ -12,31 +12,28 @@ pipeline {
     APP_PORT = "8081"
 }
 
-    stages {
+    stage('Prepare Environment') {
+    steps {
+        sh '''
+        #!/bin/bash
+        # Ensure app folder exists
+        sudo mkdir -p /opt/bus_booking
+        sudo chown -R $USER:$USER /opt/bus_booking
 
-        stage('Prepare Environment') {
-            steps {
-                sh '''
-                #!/bin/bash
-                # Install Java if missing
-                if ! java -version &>/dev/null; then
-                    echo "Installing Java 17..."
-                    sudo apt-get update
-                    sudo apt-get install -y openjdk-17-jdk
-                else
-                    echo "Java is already installed"
-                fi
+        # Install Java if missing
+        if ! java -version &>/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y openjdk-17-jdk
+        fi
 
-                # Install Maven if missing
-                if ! mvn -v &>/dev/null; then
-                    echo "Installing Maven..."
-                    sudo apt-get install -y maven
-                else
-                    echo "Maven is already installed"
-                fi
-                '''
-            }
-        }
+        # Install Maven if missing
+        if ! mvn -v &>/dev/null; then
+            sudo apt-get install -y maven
+        fi
+        '''
+    }
+}
+
 
         stage('Checkout Code') {
             steps {
