@@ -36,14 +36,14 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 sh '''
-                cd $BASE_DIR
-                if [ -d "bus_booking/.git" ]; then
-                    cd bus_booking
-                    git fetch --all
-                    git reset --hard origin/main
-                else
-                    git clone https://github.com/patilsahana1234/bus_booking.git
-                fi
+                echo "=== Checking out Correct Repo & Branch ==="
+
+                sudo rm -rf /opt/bus_booking
+                sudo mkdir -p /opt/bus_booking
+                cd /opt/bus_booking
+
+                git clone -b feature-1 https://github.com/patilsahana1234/bus_booking.git
+                echo "=== Code Pulled ==="
                 '''
             }
         }
