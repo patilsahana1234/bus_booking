@@ -55,7 +55,7 @@ pipeline {
                     echo "Directory exists"
                 else
                     echo "Directory does not exist"
-                    exit 1
+               
                 fi
 
                 echo "Stopping Tomcat (if running)..."
