@@ -4,7 +4,7 @@ This repository contains the source code for the Bus Booking Application built w
 
 ## Prerequisites
 
-- Java 11 or above
+- Java 17 or above
 - Maven 3.6 or above
 - GitHub repository for CI/CD (optional)
 - Jenkins for Jenkins pipeline (optional)
@@ -17,7 +17,7 @@ This repository contains the source code for the Bus Booking Application built w
 git clone https://github.com/yourusername/bus-booking-app.git
 cd bus-booking-app
 Setting up Maven and Java
-Ensure that Java 11 (or above) and Maven are installed on your machine. You can verify the installation by running:
+Ensure that Java 17 (or above) and Maven are installed on your machine. You can verify the installation by running:
 
 bash
 Copy code
@@ -119,7 +119,7 @@ jobs:
         - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
 
       # Cache Maven dependencies
@@ -176,7 +176,7 @@ jobs:
 =============================================================================================================================================================================
 How the CI/CD Pipeline Works
 Checkout the repository: This step checks out the code from the repository.
-Set up Java: Sets up Java 11 using the actions/setup-java action.
+Set up Java: Sets up Java 17 using the actions/setup-java action.
 Cache Maven dependencies: Caches the Maven dependencies to speed up subsequent builds.
 Build with Maven: Runs mvn clean install to build the project.
 Upload the JAR as an artifact: Uploads the generated JAR file as a build artifact.
