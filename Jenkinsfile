@@ -44,26 +44,13 @@ pipeline {
                     url: 'https://github.com/patilsahana1234/bus_booking.git'
             }
         }
-
-        stage('Build WAR') {
-    steps {
-        withEnv(["JAVA_HOME=${tool 'jdk17'}", "PATH=${tool 'jdk17'}/bin:${env.PATH}"]) {
-            sh 'mvn clean package -DskipTests'
-        }
-    }
-}
-
+        
         stage('Install Tomcat (if Not Exists)') {
             steps {
                 sh '''
                     if [ ! -d "${TOMCAT_HOME}" ]; then
                         echo "==== Tomcat not found. Installing... ===="
 
-                        # Install Java if missing
-                        if ! type java >/dev/null 2>&1; then
-                            sudo apt update -y
-                            sudo apt install -y openjdk-17-jdk
-                        fi
 
                         # Create Tomcat user
                         sudo useradd -m -U -d /opt/tomcat -s /bin/false ${TOMCAT_USER} || true
@@ -111,6 +98,15 @@ EOF
                 '''
             }
         }
+
+        stage('Build WAR') {
+    steps {
+        withEnv(["JAVA_HOME=${tool 'jdk17'}", "PATH=${tool 'jdk17'}/bin:${env.PATH}"]) {
+            sh 'mvn clean package -DskipTests'
+        }
+    }
+}
+
 
         stage('Deploy WAR to Tomcat') {
             steps {
