@@ -41,10 +41,7 @@ pipeline {
                         sudo mv apache-tomcat-10.1.30 tomcat10
                         sudo chmod +x /opt/tomcat10/bin/*.sh
                     fi
-                else
-                    echo "Tomcat already installed."
-                fi
-                '''
+               
             }
         }
         stage('Build WAR') {
