@@ -40,7 +40,8 @@ pipeline {
                 rm -rf bus_booking
 
                 echo "=== Cloning latest code ==="
-                git clone https://github.com/patilsahana1234/bus_booking.git app
+                git clone https://github.com/patilsahana1234/bus_booking.git 
+                
 
                 echo "=== Code directory = $BASE_DIR/app ==="
                 ls -l $BASE_DIR/app
