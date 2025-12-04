@@ -2,84 +2,61 @@ pipeline {
     agent any
 
     environment {
-        JAVA_HOME = tool name: 'jdk17', type: 'jdk'
+        JAVA_HOME = tool name: 'JDK17', type: 'jdk'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
         TOMCAT_DIR = "/opt/tomcat10"
         TOMCAT_VERSION = "10.1.49"
+        WAR_NAME = "bus-booking-app.war"
     }
 
     stages {
 
-        stage('Check Java & Maven') {
+        stage('Checkout Code') {
             steps {
-                sh """
-                echo "=== Check Java Version ==="
-                java -version
-
-                echo "=== Check Maven Version ==="
-                if ! command -v mvn > /dev/null; then
-                    echo "Maven not installed on Jenkins node!"
-                    exit 1
-                fi
-                mvn -version
-                """
-            }
-        }
-
-        stage('Install Tomcat 10 (if not exists)') {
-            steps {
-                sh """
-                echo "=== Checking Tomcat 10 installation ==="
-
-                if [ -d "$TOMCAT_DIR" ]; then
-                    echo "Tomcat 10 already installed at $TOMCAT_DIR"
-                else
-                    echo "Installing Tomcat 10"
-
-                    cd /opt
-                    sudo wget https://dlcdn.apache.org/tomcat/tomcat-10/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz
-                    sudo tar -xzf apache-tomcat-${TOMCAT_VERSION}.tar.gz
-                    sudo mv apache-tomcat-${TOMCAT_VERSION} tomcat10
-                    sudo chmod +x $TOMCAT_DIR/bin/*.sh
-
-                    echo "Tomcat 10 installation completed."
-                fi
-                """
+                git branch: 'feature-1',
+                    url: 'https://github.com/patilsahana1234/bus_booking.git'
             }
         }
 
         stage('Build WAR') {
             steps {
-                sh "mvn clean package -DskipTests"
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Deploy WAR to Tomcat 10') {
+        stage('Install Tomcat 10 If Missing') {
             steps {
-                sh """
-                echo "=== Verifying Tomcat webapps directory ==="
-                if [ -d "$TOMCAT_DIR/webapps" ]; then
-                    echo "webapps directory exists"
+                sh '''
+                if [ -d "$TOMCAT_DIR" ]; then
+                    echo "Tomcat already exists"
                 else
-                    echo "webapps directory missing!"
-                    exit 1
+                    echo "Installing Tomcat 10..."
+                    cd /opt
+                    sudo wget https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.30/bin/apache-tomcat-10.1.49.tar.gz
+                    sudo tar -xzf apache-tomcat-10.1.49.tar.gz
+                    sudo mv apache-tomcat-10.1.49 tomcat10
+                    sudo chmod +x $TOMCAT_DIR/bin/*.sh
                 fi
+                '''
+            }
+        }
 
-                echo "=== Stopping Tomcat 10 ==="
+        stage('Deploy WAR to Tomcat') {
+            steps {
+                sh '''
+                echo "Stopping Tomcat..."
                 sudo $TOMCAT_DIR/bin/shutdown.sh || true
 
-                echo "=== Cleaning old deployment ==="
-                sudo rm -rf $TOMCAT_DIR/webapps/bus_booking*
-                sudo rm -f $TOMCAT_DIR/webapps/bus_booking.war
+                echo "Cleaning old deployment..."
+                sudo rm -rf $TOMCAT_DIR/webapps/bus-booking-app*
+                sudo rm -f $TOMCAT_DIR/webapps/ROOT.war
 
-                echo "=== Deploying New WAR ==="
-                sudo cp target/*.war $TOMCAT_DIR/webapps/bus_booking.war
+                echo "Deploying WAR..."
+                sudo cp target/*.war $TOMCAT_DIR/webapps/ROOT.war
 
-                echo "=== Starting Tomcat 10 ==="
+                echo "Starting Tomcat..."
                 sudo $TOMCAT_DIR/bin/startup.sh
-
-                echo "Deployment Completed!"
-                """
+                '''
             }
         }
     }
