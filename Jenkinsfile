@@ -4,7 +4,8 @@ pipeline {
         JAVA_HOME = tool name: 'jdk17', type: 'jdk'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
         TOMCAT_DIR = "/opt/tomcat10"
-        TOMCAT_VERSION = "10.1.30"
+		
+    TOMCAT_VERSION = "10.1.30"
     }
     stages {
         stage('Check Java & Maven') {
@@ -44,26 +45,34 @@ pipeline {
                 sh 'mvn clean package -DskipTests'
             }
         }
+       
+    }
+    stages {
         stage('Deploy WAR to Tomcat') {
             steps {
-                sh '''
-                if [ -d "${TOMCAT_DIR}/webapps" ]; then
-               echo "Directory exists"
+                sh """
+                if [ -d "\$TOMCAT_DIR/webapps" ]; then
+                    echo "Directory exists"
                 else
-    echo "Directory does not exist"
+                    echo "Directory does not exist"
                     exit 1
                 fi
+
                 echo "Stopping Tomcat (if running)..."
-                sudo ${TOMCAT_DIR}/bin/shutdown.sh || true
+                sudo \$TOMCAT_DIR/bin/shutdown.sh || true
+
                 echo "Removing old deployment..."
-                sudo rm -rf ${TOMCAT_DIR}/webapps/bus-booking-app*
+                sudo rm -rf \$TOMCAT_DIR/webapps/bus-booking-app*
+
                 echo "Deploying new WAR..."
-                sudo cp target/bus-booking-app-1.0-SNAPSHOT.war ${TOMCAT_DIR}/webapps/
+                sudo cp target/bus-booking-app-1.0-SNAPSHOT.war \$TOMCAT_DIR/webapps/
+
                 echo "Starting Tomcat..."
-                sudo ${TOMCAT_DIR}/bin/startup.sh
-                '''
+                sudo \$TOMCAT_DIR/bin/startup.sh
+                """
             }
         }
+    
         
     }
 }
