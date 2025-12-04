@@ -47,6 +47,14 @@ pipeline {
         '''
     }
 }
+stage('Show Structure') {
+    steps {
+        sh '''
+        echo "=== FULL DIRECTORY STRUCTURE ==="
+        ls -R /opt/bus_booking/bus_booking
+        '''
+    }
+}
 
 
         stage('Create build_deploy.sh') {
