@@ -2,13 +2,12 @@ pipeline {
     agent any
 
     environment {
-        BASE_DIR = "/opt/bus_booking"
-        CLONE_DIR = "/opt/bus_booking/bus_booking"
-        APP_DIR = "/opt/bus_booking/bus_booking/bus-booking-app"   // FIXED
-        JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
-        PATH = "${JAVA_HOME}/bin:${env.PATH}:/usr/share/maven/bin"
-        APP_PORT = "8081"
+        JAVA_HOME = tool name: 'JDK17', type: 'jdk'
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
+        APP_DIR = "/opt/bus_booking/bus_booking"   // points to repo root
+        TOMCAT_DIR = "/opt/tomcat10"
         WAR_NAME = "bus-booking-app.war"
+        APP_PORT = "8081"
     }
 
     stages {
@@ -16,101 +15,89 @@ pipeline {
         stage('Prepare Environment') {
             steps {
                 sh '''
-                sudo mkdir -p $BASE_DIR
-                sudo chown -R $USER:$USER $BASE_DIR
-
+                #!/bin/bash
+                # Install Java if missing
                 if ! java -version &>/dev/null; then
+                    echo "Installing Java 17..."
                     sudo apt-get update
                     sudo apt-get install -y openjdk-17-jdk
+                else
+                    echo "Java is already installed"
                 fi
 
+                # Install Maven if missing
                 if ! mvn -v &>/dev/null; then
+                    echo "Installing Maven..."
                     sudo apt-get install -y maven
+                else
+                    echo "Maven is already installed"
                 fi
                 '''
             }
         }
 
         stage('Checkout Code') {
-    steps {
-        sh '''
-        cd $BASE_DIR
-
-        echo "=== Cleaning old folders ==="
-        rm -rf bus_booking
-
-        echo "=== Cloning latest code ==="
-        git clone https://github.com/patilsahana1234/bus_booking.git
-
-        echo "=== FULL DIRECTORY STRUCTURE ==="
-        ls -R /opt/bus_booking/bus_booking
-        '''
-    }
-}
-stage('Show Structure') {
-    steps {
-        sh '''
-        echo "=== FULL DIRECTORY STRUCTURE ==="
-        ls -R /opt/bus_booking/bus_booking
-        '''
-    }
-}
-
-
-        stage('Create build_deploy.sh') {
             steps {
                 sh '''
-                cd $APP_DIR
-
-cat << 'EOF' > build_deploy.sh
-#!/bin/bash
-set -e
-
-APP_DIR="$(pwd)"
-TARGET_DIR="$APP_DIR/target"
-WAR_NAME="bus-booking-app.war"
-DEPLOY_DIR="$APP_DIR/deploy"
-LOG_FILE="$DEPLOY_DIR/app.log"
-PORT=8081
-
-mkdir -p "$DEPLOY_DIR"
-
-# Kill old app
-PID=$(pgrep -f "$DEPLOY_DIR/$WAR_NAME" || true)
-if [ -n "$PID" ]; then
-    pkill -f "$DEPLOY_DIR/$WAR_NAME"
-    sleep 5
-fi
-
-# Build WAR
-mvn clean package -DskipTests
-
-# Copy WAR
-WAR_FILE=$(find $TARGET_DIR -name "*.war" | head -n 1)
-cp "$WAR_FILE" "$DEPLOY_DIR/$WAR_NAME"
-
-# Start new app
-nohup java -jar "$DEPLOY_DIR/$WAR_NAME" --server.port=$PORT > "$LOG_FILE" 2>&1 &
-
-sleep 30
-
-if curl -s http://localhost:$PORT/actuator/health | grep -q "UP"; then
-    echo "Application running on port $PORT"
-else
-    echo "Startup failed. Check logs at $LOG_FILE"
-fi
-EOF
-
-                chmod +x build_deploy.sh
+                cd /opt/bus_booking
+                if [ -d "bus_booking/.git" ]; then
+                    cd bus_booking
+                    git fetch --all
+                    git reset --hard origin/main
+                else
+                    git clone https://github.com/patilsahana1234/bus_booking.git
+                fi
                 '''
             }
         }
 
-        stage('Build and Deploy') {
+        stage('Build WAR') {
             steps {
                 sh '''
                 cd $APP_DIR
-                ./build_deploy.sh
+                mvn clean package -DskipTests
+                '''
+            }
+        }
+
+        stage('Stop Tomcat') {
+            steps {
+                sh '''
+                echo "Stopping Tomcat..."
+                sudo $TOMCAT_DIR/bin/shutdown.sh || true
+                sleep 5
+                '''
+            }
+        }
+
+        stage('Deploy WAR') {
+            steps {
+                sh '''
+                echo "Cleaning old deployment..."
+                sudo rm -rf $TOMCAT_DIR/webapps/bus-booking-app
+                sudo rm -f $TOMCAT_DIR/webapps/$WAR_NAME
+
+                echo "Copying new WAR..."
+                sudo cp $APP_DIR/target/$WAR_NAME $TOMCAT_DIR/webapps/
+                '''
+            }
+        }
+
+        stage('Start Tomcat') {
+            steps {
+                sh '''
+                echo "Starting Tomcat..."
+                sudo $TOMCAT_DIR/bin/startup.sh
+                sleep 10
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                echo "Checking application on port $APP_PORT..."
+                curl -I http://localhost:$APP_PORT || echo "Application may not have started yet."
                 '''
             }
         }
@@ -119,8 +106,7 @@ EOF
     post {
         always {
             sh '''
-            echo "Pipeline completed. Application running on port $APP_PORT"
-            echo "Logs: $APP_DIR/deploy/app.log"
+            echo "Pipeline completed. Logs are in $APP_DIR/target"
             '''
         }
     }
