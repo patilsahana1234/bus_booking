@@ -54,7 +54,7 @@ pipeline {
         stage('Deploy WAR to Tomcat') {
             steps {
                 sh '''
-                if [ ! -d "${TOMCAT_DIR}/webapps" ]; then
+                if [ ! -d /opt/tomcat10/webapps" ]; then
                     echo "Error: Tomcat webapps directory does not exist!"
                     exit 1
                 fi
