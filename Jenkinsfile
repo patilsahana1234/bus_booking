@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         BASE_DIR = "/opt/bus_booking"
-        APP_DIR = "/opt/bus_booking/bus-booking-app"
+        APP_DIR = "/opt/bus_booking/app"
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
         PATH = "${JAVA_HOME}/bin:${env.PATH}:/usr/share/maven/bin"
         APP_PORT = "8081"
@@ -35,18 +35,15 @@ pipeline {
                 sh '''
                 cd $BASE_DIR
 
-                echo "=== Removing old project folders ==="
+                echo "=== Cleaning old folders ==="
+                rm -rf app
                 rm -rf bus_booking
-                rm -rf bus-booking-app
 
                 echo "=== Cloning latest code ==="
-                git clone https://github.com/patilsahana1234/bus_booking.git
+                git clone https://github.com/patilsahana1234/bus_booking.git app
 
-                echo "=== Moving actual application folder ==="
-                mv bus_booking/bus-booking-app $BASE_DIR/
-
-                echo "=== Cleaning leftover ==="
-                rm -rf bus_booking
+                echo "=== Code directory = $BASE_DIR/app ==="
+                ls -l $BASE_DIR/app
                 '''
             }
         }
@@ -55,8 +52,6 @@ pipeline {
             steps {
                 sh '''
                 cd $APP_DIR
-
-                echo "=== Creating fresh build_deploy.sh ==="
 
 cat << 'EOF' > build_deploy.sh
 #!/bin/bash
@@ -71,26 +66,25 @@ PORT=8081
 
 mkdir -p "$DEPLOY_DIR"
 
-echo "=== Stopping existing app if running ==="
+# Kill old app
 PID=$(pgrep -f "$DEPLOY_DIR/$WAR_NAME" || true)
 if [ -n "$PID" ]; then
     pkill -f "$DEPLOY_DIR/$WAR_NAME"
     sleep 5
 fi
 
-echo "=== Building Project ==="
+# Build WAR
 mvn clean package -DskipTests
 
-echo "=== Copying WAR ==="
+# Copy WAR
 WAR_FILE=$(find $TARGET_DIR -name "*.war" | head -n 1)
 cp "$WAR_FILE" "$DEPLOY_DIR/$WAR_NAME"
 
-echo "=== Starting Application on Port $PORT ==="
+# Start new app
 nohup java -jar "$DEPLOY_DIR/$WAR_NAME" --server.port=$PORT > "$LOG_FILE" 2>&1 &
 
 sleep 30
 
-echo "=== Checking Health ==="
 if curl -s http://localhost:$PORT/actuator/health | grep -q "UP"; then
     echo "Application running on port $PORT"
 else
