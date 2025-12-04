@@ -2,38 +2,37 @@ pipeline {
     agent any
 
     environment {
-    JAVA_HOME = tool(name: 'JDK17', type: 'jdk')
-    PATH = "${JAVA_HOME}/bin:${env.PATH}"
-
-    APP_DIR = "/opt/bus_booking/bus_booking"
-    TOMCAT_DIR = "/opt/tomcat10"
-
-    WAR_NAME = "bus-booking-app-1.0-SNAPSHOT.war"
-    APP_PORT = "8081"
-}
-
-    stage('Prepare Environment') {
-    steps {
-        sh '''
-        #!/bin/bash
-        # Ensure app folder exists
-        sudo mkdir -p /opt/bus_booking
-        sudo chown -R $USER:$USER /opt/bus_booking
-
-        # Install Java if missing
-        if ! java -version &>/dev/null; then
-            sudo apt-get update
-            sudo apt-get install -y openjdk-17-jdk
-        fi
-
-        # Install Maven if missing
-        if ! mvn -v &>/dev/null; then
-            sudo apt-get install -y maven
-        fi
-        '''
+        JAVA_HOME = tool(name: 'JDK17', type: 'jdk')
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
+        APP_DIR = "/opt/bus_booking/bus_booking"
+        TOMCAT_DIR = "/opt/tomcat10"
+        WAR_NAME = "bus-booking-app-1.0-SNAPSHOT.war"
+        APP_PORT = "8081"
     }
-}
 
+    stages {
+
+        stage('Prepare Environment') {
+            steps {
+                sh '''
+                #!/bin/bash
+                # Ensure app folder exists
+                sudo mkdir -p /opt/bus_booking
+                sudo chown -R $USER:$USER /opt/bus_booking
+
+                # Install Java if missing
+                if ! java -version &>/dev/null; then
+                    sudo apt-get update
+                    sudo apt-get install -y openjdk-17-jdk
+                fi
+
+                # Install Maven if missing
+                if ! mvn -v &>/dev/null; then
+                    sudo apt-get install -y maven
+                fi
+                '''
+            }
+        }
 
         stage('Checkout Code') {
             steps {
@@ -109,5 +108,4 @@ pipeline {
             '''
         }
     }
-}
 }
