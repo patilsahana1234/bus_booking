@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        JAVA_HOME = tool name: 'jdk-17', type: 'jdk'
+        JAVA_HOME = tool name: 'jdk17', type: 'jdk'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
         TOMCAT_DIR = "/opt/tomcat10"
         TOMCAT_VERSION = "10.1.30"
