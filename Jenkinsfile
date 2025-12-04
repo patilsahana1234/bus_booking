@@ -5,7 +5,7 @@ pipeline {
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
         TOMCAT_DIR = "/opt/tomcat10"
         TOMCAT_VERSION = "10.1.30"
-        TOMCAT_URL = "https://downloads.apache.org/tomcat/tomcat-10/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+      
     }
 
     stages {
@@ -30,20 +30,16 @@ pipeline {
         stage('Install Tomcat (if not exists)') {
             steps {
                 sh '''
-                 if [ -d "/opt/tomcat10" ];  then
-                    echo "==== Tomcat not found. Installing... ===="
-                    sudo mkdir -p ${TOMCAT_DIR}
-                    cd /tmp
-                    curl -O ${TOMCAT_URL}
-                    if file apache-tomcat-${TOMCAT_VERSION}.tar.gz | grep -q "gzip"; then
-                        sudo tar -xzf apache-tomcat-${TOMCAT_VERSION}.tar.gz -C ${TOMCAT_DIR} --strip-components=1
-                        sudo useradd -m -U -d ${TOMCAT_DIR} -s /bin/false tomcat || true
-                        sudo chown -R tomcat:tomcat ${TOMCAT_DIR}
-                        sudo chmod +x ${TOMCAT_DIR}/bin/*.sh
-                        echo "Tomcat installed successfully."
+                echo "=== Checking Tomcat ==="
+                    if [ -d "/opt/tomcat10" ]; then
+                        echo "Tomcat already installed in /opt/tomcat10"
                     else
-                        echo "Error: Downloaded Tomcat file is invalid."
-                        exit 1
+                        echo "Installing Tomcat 10..."
+                        cd /opt
+                        sudo wget https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.30/bin/apache-tomcat-10.1.30.tar.gz
+                        sudo tar -xzf apache-tomcat-10.1.30.tar.gz
+                        sudo mv apache-tomcat-10.1.30 tomcat10
+                        sudo chmod +x /opt/tomcat10/bin/*.sh
                     fi
                 else
                     echo "Tomcat already installed."
