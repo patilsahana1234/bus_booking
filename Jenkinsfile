@@ -4,9 +4,9 @@ pipeline {
     environment {
         JAVA_HOME = tool(name: 'JDK17', type: 'jdk')
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
-        APP_DIR = "/opt/bus_booking/bus_booking"
+        BASE_DIR = "/opt/bus_booking"           // Base folder for cloning
         TOMCAT_DIR = "/opt/tomcat10"
-        WAR_NAME = "bus-booking-app-1.0-SNAPSHOT.war"
+        WAR_NAME = "bus-booking-app.war"
         APP_PORT = "8081"
     }
 
@@ -16,9 +16,9 @@ pipeline {
             steps {
                 sh '''
                 #!/bin/bash
-                # Ensure app folder exists
-                sudo mkdir -p /opt/bus_booking
-                sudo chown -R $USER:$USER /opt/bus_booking
+                # Create base directory
+                sudo mkdir -p $BASE_DIR
+                sudo chown -R $USER:$USER $BASE_DIR
 
                 # Install Java if missing
                 if ! java -version &>/dev/null; then
@@ -37,14 +37,33 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 sh '''
-                cd /opt/bus_booking
+                cd $BASE_DIR
                 if [ -d "bus_booking/.git" ]; then
                     cd bus_booking
                     git fetch --all
                     git reset --hard origin/main
                 else
-                    git clone https://github.com/patilsahana1234/bus_booking.git
+                    git clone https://github.com/patilsahana1234/bus_booking.git bus_booking
                 fi
+                '''
+            }
+        }
+
+        stage('Detect Maven Project') {
+            steps {
+                sh '''
+                cd $BASE_DIR/bus_booking
+                # Look for pom.xml recursively
+                POM_PATH=$(find . -name "pom.xml" | head -n 1)
+                if [ -z "$POM_PATH" ]; then
+                    echo "Error: pom.xml not found!"
+                    exit 1
+                fi
+
+                # Set the directory containing pom.xml
+                APP_DIR=$(dirname $POM_PATH)
+                echo "Detected Maven project in: $APP_DIR"
+                echo $APP_DIR > detected_app_dir.txt
                 '''
             }
         }
@@ -52,8 +71,18 @@ pipeline {
         stage('Build WAR') {
             steps {
                 sh '''
-                cd $APP_DIR
+                APP_DIR=$(cat $BASE_DIR/bus_booking/detected_app_dir.txt)
+                cd $BASE_DIR/bus_booking/$APP_DIR
                 mvn clean package -DskipTests
+
+                # Get the WAR file
+                WAR_FILE=$(find target -name "*.war" | head -n 1)
+                if [ -z "$WAR_FILE" ]; then
+                    echo "Error: WAR file not generated!"
+                    exit 1
+                fi
+                cp $WAR_FILE $BASE_DIR/$WAR_NAME
+                echo "WAR built at $BASE_DIR/$WAR_NAME"
                 '''
             }
         }
@@ -76,7 +105,7 @@ pipeline {
                 sudo rm -f $TOMCAT_DIR/webapps/$WAR_NAME
 
                 echo "Copying new WAR..."
-                sudo cp $APP_DIR/target/$WAR_NAME $TOMCAT_DIR/webapps/
+                sudo cp $BASE_DIR/$WAR_NAME $TOMCAT_DIR/webapps/
                 '''
             }
         }
@@ -104,7 +133,7 @@ pipeline {
     post {
         always {
             sh '''
-            echo "Pipeline completed. Logs are in $APP_DIR/target"
+            echo "Pipeline completed. Logs may be in $TOMCAT_DIR/logs or $BASE_DIR/$WAR_NAME"
             '''
         }
     }
