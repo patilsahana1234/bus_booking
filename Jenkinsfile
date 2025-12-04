@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         BASE_DIR = "/opt/bus_booking"
-        APP_DIR = "/opt/bus_booking/app"
+        APP_DIR = "/opt/bus_booking"
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
         PATH = "${JAVA_HOME}/bin:${env.PATH}:/usr/share/maven/bin"
         APP_PORT = "8081"
